@@ -15,10 +15,6 @@ knitr::opts_chunk$set(
 
 # calaminer
 
-<!-- badges: start -->
-[![CRAN status](https://www.r-pkg.org/badges/version/calaminer)](https://CRAN.R-project.org/package=calaminer)
-<!-- badges: end -->
-
 Fast Excel file reader for R, powered by the Rust [calamine](https://github.com/tafia/calamine) library.
 
 ## Supported Formats
@@ -39,8 +35,8 @@ Fast Excel file reader for R, powered by the Rust [calamine](https://github.com/
 You can install the development version of calaminer from [GitHub](https://github.com/) with:
 
 ```r
-# install.packages("remotes")
-remotes::install_github("MaxManek1110/calamine_r")
+# install.packages("devtools")
+devtools::install_github("MaxManek1110/calamineR")
 ```
 
 ## Usage

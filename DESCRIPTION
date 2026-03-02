@@ -4,6 +4,7 @@ Version: 0.1.0
 Authors@R: c(
     person("Maximilian", "Manek", email = "maximilian.manek@hotmail.de",
                   role = c("aut", "cre")),
+    person("Juan Antonio Monroy Kuhn", email = "amonroykuhn@gmail.com", role = "aut")
     person("Johann Tuffe", role = "aut", comment = "calamine Rust library"),
     person("Authors of the dependent Rust crates", role = "aut", comment = "see AUTHORS file")
     )
@@ -12,8 +13,8 @@ Description: High-performance Excel file reader supporting xlsx, xlsm, xlsb,
     significantly faster read times compared to pure R implementations.
     Supports reading sheet names, dimensions, and data as data frames.
 License: MIT + file LICENSE
-URL: https://github.com/MaxManek1110/calamine_r
-BugReports: https://github.com/MaxManek1110/calamine_r/issues
+URL: https://github.com/MaxManek1110/calamineR
+BugReports: https://github.com/MaxManek1110/calamineR/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
