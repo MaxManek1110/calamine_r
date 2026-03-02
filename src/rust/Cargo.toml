@@ -1,0 +1,16 @@
+[package]
+name = "calamine-r"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+
+[lib]
+crate-type = ["staticlib"]
+name = "calamine_r"
+
+[dependencies]
+extendr-api = "0.6"
+calamine = "0.24"
+
+[profile.release]
+lto = true

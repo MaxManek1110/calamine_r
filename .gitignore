@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+src/rust/target
+CLAUDE.md
+..Rcheck/
+inst/extdata/random_table_40mb.xlsb

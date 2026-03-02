@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Minimum supported Rust version
+MSRV="1.75.0"
+
+echo "-------------------------------------------"
+echo "Configuring calaminer package"
+echo "-------------------------------------------"
+
+# Check for Cargo
+if ! command -v cargo >/dev/null 2>&1; then
+    echo ""
+    echo "------------------------- CONFIGURATION ERROR -------------------------"
+    echo "Cargo (Rust package manager) is not found on the system PATH."
+    echo ""
+    echo "This package requires the Rust toolchain (cargo >= ${MSRV})."
+    echo "Please install Rust from: https://rustup.rs/"
+    echo ""
+    echo "After installation, ensure 'cargo' is in your PATH and try again."
+    echo "-----------------------------------------------------------------------"
+    exit 1
+fi
+
+# Check for rustc
+if ! command -v rustc >/dev/null 2>&1; then
+    echo ""
+    echo "------------------------- CONFIGURATION ERROR -------------------------"
+    echo "rustc (Rust compiler) is not found on the system PATH."
+    echo ""
+    echo "This package requires the Rust toolchain (rustc >= ${MSRV})."
+    echo "Please install Rust from: https://rustup.rs/"
+    echo "-----------------------------------------------------------------------"
+    exit 1
+fi
+
+# Report versions
+CARGO_VERSION=$(cargo --version 2>&1)
+RUSTC_VERSION=$(rustc --version 2>&1)
+echo "Found ${CARGO_VERSION}"
+echo "Found ${RUSTC_VERSION}"
+
+# Extract rustc version number for comparison
+RUSTC_VER=$(rustc --version | sed 's/rustc \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')
+
+# Function to compare versions
+version_ge() {
+    # Returns 0 (true) if $1 >= $2
+    [ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
+}
+
+# Check MSRV
+if ! version_ge "${RUSTC_VER}" "${MSRV}"; then
+    echo ""
+    echo "------------------------- CONFIGURATION ERROR -------------------------"
+    echo "Rust version ${RUSTC_VER} is too old."
+    echo "This package requires rustc >= ${MSRV}."
+    echo ""
+    echo "Please update Rust by running: rustup update"
+    echo "-----------------------------------------------------------------------"
+    exit 1
+fi
+
+echo "Rust version ${RUSTC_VER} meets minimum requirement (>= ${MSRV})"
+echo "-------------------------------------------"
+echo "Configuration successful"
+echo "-------------------------------------------"
+
+exit 0

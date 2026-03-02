@@ -1,0 +1,12 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.gitignore$
+^README\.Rmd$
+^src/rust/target$
+^\.github$
+^cran-comments\.md$
+^LICENSE\.md$
+^CLAUDE\.md$
+^src/rust/\.cargo/\.package-cache$
+^src/rust/\.cargo/\.package-cache-mutate$
+^\.\.Rcheck$
