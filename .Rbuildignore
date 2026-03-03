@@ -12,3 +12,4 @@
 ^\.\.Rcheck$
 ^benchmark\.R$
 ^inst/extdata/random_table_40mb\.xlsb$
+^CRAN-SUBMISSION$

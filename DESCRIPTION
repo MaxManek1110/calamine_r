@@ -6,7 +6,7 @@ Authors@R: c(
                   role = c("aut", "cre")),
     person("Juan Antonio Monroy Kuhn", email = "amonroykuhn@gmail.com", role = "aut"),
     person("Johann Tuffe", role = "aut", comment = "calamine Rust library"),
-    person("Authors of the dependent Rust crates", role = "aut", comment = "see AUTHORS file")
+    person("Authors of the dependent Rust crates", role = "aut", comment = "see inst/AUTHORS file")
     )
 Description: High-performance Excel file reader supporting xlsx, xlsm, xlsb,
     xls, and ods formats. Built on the Rust 'calamine' library, providing

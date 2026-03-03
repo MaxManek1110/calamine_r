@@ -23,7 +23,7 @@ Authors:
 \itemize{
   \item Juan Antonio Monroy Kuhn \email{amonroykuhn@gmail.com}
   \item Johann Tuffe (calamine Rust library)
-  \item Authors of the dependent Rust crates (see AUTHORS file)
+  \item Authors of the dependent Rust crates (see inst/AUTHORS file)
 }
 
 }

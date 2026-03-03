@@ -1,0 +1,13 @@
+# Preserve line endings for Rust vendored sources
+src/rust/vendor/** text=auto eol=lf
+src/rust/**/*.rs text eol=lf
+src/rust/**/*.toml text eol=lf
+src/rust/.cargo/** text eol=lf
+
+# Shell scripts
+configure text eol=lf
+configure.win text eol=lf
+
+# Makefiles
+src/Makevars text eol=lf
+src/Makevars.win text eol=lf
