@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# calaminer
+# calamineR
 
 Fast Excel file reader for R, powered by the Rust
 [calamine](https://github.com/tafia/calamine) library.
@@ -32,7 +32,7 @@ devtools::install_github("MaxManek1110/calamineR")
 ## Usage
 
 ``` r
-library(calaminer)
+library(calamineR)
 
 # Read a sheet as data.frame
 df <- read_excel("data.xlsx")
@@ -71,7 +71,7 @@ alternatives:
 
 ## Development
 
-`rtiktoken` is built using `extendr` and `Rust`. To build the package,
+`calamineR` is built using `extendr` and `Rust`. To build the package,
 you need to have `Rust` installed on your machine.
 
 ``` r
