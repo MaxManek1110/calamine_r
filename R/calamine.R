@@ -1,3 +1,24 @@
+# Helper function to validate sheet parameter against available sheets
+validate_sheet <- function(path, sheet) {
+  sheets <- cal_sheet_names(path)
+  if (is.numeric(sheet)) {
+    if (sheet > length(sheets)) {
+      stop(sprintf(
+        "Sheet index %d is out of range. File has %d sheet(s): %s",
+        sheet, length(sheets), paste(shQuote(sheets), collapse = ", ")
+      ), call. = FALSE)
+    }
+  } else {
+    if (!sheet %in% sheets) {
+      stop(sprintf(
+        "Sheet '%s' not found. Available sheets: %s",
+        sheet, paste(shQuote(sheets), collapse = ", ")
+      ), call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
 #' Read Excel File Using Calamine
 #'
 #' Fast Excel reader powered by the Rust calamine library.
@@ -31,7 +52,20 @@
 #' }
 read_excel <- function(path, sheet = 1L, col_names = TRUE, skip = 0L,
                        fill_merged_cells = FALSE) {
-  path <- normalizePath(path, mustWork = TRUE)
+  stopifnot(
+    "`path` must be a single character string" = is.character(path) && length(path) == 1,
+    "File does not exist" = file.exists(path),
+    "`sheet` must be length 1" = length(sheet) == 1,
+    "`sheet` must be character or numeric" = is.character(sheet) || is.numeric(sheet),
+    "`col_names` must be TRUE or FALSE" = is.logical(col_names) && length(col_names) == 1,
+    "`skip` must be a non-negative number" = is.numeric(skip) && length(skip) == 1 && skip >= 0,
+    "`fill_merged_cells` must be TRUE or FALSE" = is.logical(fill_merged_cells) && length(fill_merged_cells) == 1
+  )
+  if (is.numeric(sheet)) stopifnot("`sheet` index must be >= 1" = sheet >= 1)
+  path <- normalizePath(path)
+  ext <- tolower(tools::file_ext(path))
+  stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
+  validate_sheet(path, sheet)
   cal_read_sheet_df(path, sheet, col_names, as.integer(skip), fill_merged_cells)
 }
 
@@ -48,7 +82,13 @@ read_excel <- function(path, sheet = 1L, col_names = TRUE, skip = 0L,
 #'   print(sheets)
 #' }
 excel_sheets <- function(path) {
-  path <- normalizePath(path, mustWork = TRUE)
+  stopifnot(
+    "`path` must be a single character string" = is.character(path) && length(path) == 1,
+    "File does not exist" = file.exists(path)
+  )
+  path <- normalizePath(path)
+  ext <- tolower(tools::file_ext(path))
+  stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
   cal_sheet_names(path)
 }
 
@@ -66,7 +106,17 @@ excel_sheets <- function(path) {
 #'   print(dims)  # Named vector: rows, cols
 #' }
 sheet_dims <- function(path, sheet = 1L) {
-  path <- normalizePath(path, mustWork = TRUE)
+  stopifnot(
+    "`path` must be a single character string" = is.character(path) && length(path) == 1,
+    "File does not exist" = file.exists(path),
+    "`sheet` must be length 1" = length(sheet) == 1,
+    "`sheet` must be character or numeric" = is.character(sheet) || is.numeric(sheet)
+  )
+  if (is.numeric(sheet)) stopifnot("`sheet` index must be >= 1" = sheet >= 1)
+  path <- normalizePath(path)
+  ext <- tolower(tools::file_ext(path))
+  stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
+  validate_sheet(path, sheet)
   dims <- cal_sheet_dims(path, sheet)
   names(dims) <- c("rows", "cols")
   dims
@@ -90,7 +140,17 @@ sheet_dims <- function(path, sheet = 1L) {
 #'   head(rows, 3)
 #' }
 read_sheet_raw <- function(path, sheet = 1L) {
-  path <- normalizePath(path, mustWork = TRUE)
+  stopifnot(
+    "`path` must be a single character string" = is.character(path) && length(path) == 1,
+    "File does not exist" = file.exists(path),
+    "`sheet` must be length 1" = length(sheet) == 1,
+    "`sheet` must be character or numeric" = is.character(sheet) || is.numeric(sheet)
+  )
+  if (is.numeric(sheet)) stopifnot("`sheet` index must be >= 1" = sheet >= 1)
+  path <- normalizePath(path)
+  ext <- tolower(tools::file_ext(path))
+  stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
+  validate_sheet(path, sheet)
   cal_read_sheet(path, sheet)
 }
 
@@ -115,6 +175,16 @@ read_sheet_raw <- function(path, sheet = 1L) {
 #'   print(regions)
 #' }
 merge_regions <- function(path, sheet = 1L) {
-  path <- normalizePath(path, mustWork = TRUE)
+  stopifnot(
+    "`path` must be a single character string" = is.character(path) && length(path) == 1,
+    "File does not exist" = file.exists(path),
+    "`sheet` must be length 1" = length(sheet) == 1,
+    "`sheet` must be character or numeric" = is.character(sheet) || is.numeric(sheet)
+  )
+  if (is.numeric(sheet)) stopifnot("`sheet` index must be >= 1" = sheet >= 1)
+  path <- normalizePath(path)
+  ext <- tolower(tools::file_ext(path))
+  stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
+  validate_sheet(path, sheet)
   cal_merge_regions(path, sheet)
 }
