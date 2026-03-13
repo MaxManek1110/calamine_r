@@ -3,6 +3,36 @@ use calamine::{open_workbook_auto, Reader, Data};
 use std::io::{Read as IoRead, BufReader, Cursor};
 use std::fs::File;
 use std::path::Path;
+use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::sync::Once;
+
+// Initialize silent panic hook once
+static INIT_PANIC_HOOK: Once = Once::new();
+
+fn init_panic_hook() {
+    INIT_PANIC_HOOK.call_once(|| {
+        std::panic::set_hook(Box::new(|_| {
+            // Silent panic hook - no stderr output
+        }));
+    });
+}
+
+/// Helper to convert panic to R error
+fn panic_to_error<T>(result: std::thread::Result<Result<T>>) -> Result<T> {
+    match result {
+        Ok(r) => r,
+        Err(e) => {
+            let msg = if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "Unknown internal error".to_string()
+            };
+            Err(Error::Other(format!("Internal error: {}", msg)))
+        }
+    }
+}
 
 // Supported file extensions
 const SUPPORTED_EXTENSIONS: &[&str] = &["xlsx", "xlsm", "xlsb", "xls", "ods"];
@@ -799,7 +829,14 @@ fn get_sheet_name(sheet: &Robj, sheet_names: &[String]) -> std::result::Result<S
 /// @export
 #[extendr]
 fn cal_sheet_names(path: &str) -> Result<Vec<String>> {
-    // Validate file path
+    init_panic_hook();
+    let path = path.to_string();
+    panic_to_error(catch_unwind(AssertUnwindSafe(|| {
+        cal_sheet_names_inner(&path)
+    })))
+}
+
+fn cal_sheet_names_inner(path: &str) -> Result<Vec<String>> {
     validate_path(path).map_err(|e| Error::Other(e))?;
 
     let workbook = open_workbook_auto(path)
@@ -815,15 +852,22 @@ fn cal_sheet_names(path: &str) -> Result<Vec<String>> {
 /// @export
 #[extendr]
 fn cal_read_sheet(path: &str, sheet: Robj) -> Result<List> {
-    // Validate inputs
+    init_panic_hook();
+    let path = path.to_string();
+    panic_to_error(catch_unwind(AssertUnwindSafe(|| {
+        cal_read_sheet_inner(&path, &sheet)
+    })))
+}
+
+fn cal_read_sheet_inner(path: &str, sheet: &Robj) -> Result<List> {
     validate_path(path).map_err(|e| Error::Other(e))?;
-    validate_sheet_arg(&sheet).map_err(|e| Error::Other(e))?;
+    validate_sheet_arg(sheet).map_err(|e| Error::Other(e))?;
 
     let mut workbook = open_workbook_auto(path)
         .map_err(|e| Error::Other(format!("Failed to open workbook: {}", e)))?;
 
     let sheet_names = workbook.sheet_names().to_vec();
-    let sheet_name = get_sheet_name(&sheet, &sheet_names)
+    let sheet_name = get_sheet_name(sheet, &sheet_names)
         .map_err(|e| Error::Other(e))?;
 
     let range = workbook.worksheet_range(&sheet_name)
@@ -852,9 +896,16 @@ fn cal_read_sheet(path: &str, sheet: Robj) -> Result<List> {
 /// @export
 #[extendr]
 fn cal_read_sheet_df(path: &str, sheet: Robj, col_names: bool, skip: i32, fill_merged: bool) -> Result<List> {
-    // Validate inputs
+    init_panic_hook();
+    let path = path.to_string();
+    panic_to_error(catch_unwind(AssertUnwindSafe(|| {
+        cal_read_sheet_df_inner(&path, &sheet, col_names, skip, fill_merged)
+    })))
+}
+
+fn cal_read_sheet_df_inner(path: &str, sheet: &Robj, col_names: bool, skip: i32, fill_merged: bool) -> Result<List> {
     validate_path(path).map_err(|e| Error::Other(e))?;
-    validate_sheet_arg(&sheet).map_err(|e| Error::Other(e))?;
+    validate_sheet_arg(sheet).map_err(|e| Error::Other(e))?;
 
     if skip < 0 {
         return Err(Error::Other("skip must be non-negative".to_string()));
@@ -864,7 +915,7 @@ fn cal_read_sheet_df(path: &str, sheet: Robj, col_names: bool, skip: i32, fill_m
         .map_err(|e| Error::Other(format!("Failed to open workbook: {}", e)))?;
 
     let sheet_names = workbook.sheet_names().to_vec();
-    let sheet_name = get_sheet_name(&sheet, &sheet_names)
+    let sheet_name = get_sheet_name(sheet, &sheet_names)
         .map_err(|e| Error::Other(e))?;
 
     // Get sheet index for xls format parsing
@@ -1053,15 +1104,22 @@ fn cal_read_sheet_df(path: &str, sheet: Robj, col_names: bool, skip: i32, fill_m
 /// @export
 #[extendr]
 fn cal_sheet_dims(path: &str, sheet: Robj) -> Result<Vec<i32>> {
-    // Validate inputs
+    init_panic_hook();
+    let path = path.to_string();
+    panic_to_error(catch_unwind(AssertUnwindSafe(|| {
+        cal_sheet_dims_inner(&path, &sheet)
+    })))
+}
+
+fn cal_sheet_dims_inner(path: &str, sheet: &Robj) -> Result<Vec<i32>> {
     validate_path(path).map_err(|e| Error::Other(e))?;
-    validate_sheet_arg(&sheet).map_err(|e| Error::Other(e))?;
+    validate_sheet_arg(sheet).map_err(|e| Error::Other(e))?;
 
     let mut workbook = open_workbook_auto(path)
         .map_err(|e| Error::Other(format!("Failed to open workbook: {}", e)))?;
 
     let sheet_names = workbook.sheet_names().to_vec();
-    let sheet_name = get_sheet_name(&sheet, &sheet_names)
+    let sheet_name = get_sheet_name(sheet, &sheet_names)
         .map_err(|e| Error::Other(e))?;
 
     let range = workbook.worksheet_range(&sheet_name)
@@ -1219,15 +1277,22 @@ fn cell_to_rstr(cell: &Data) -> Rstr {
 /// @export
 #[extendr]
 fn cal_merge_regions(path: &str, sheet: Robj) -> Result<List> {
-    // Validate inputs
+    init_panic_hook();
+    let path = path.to_string();
+    panic_to_error(catch_unwind(AssertUnwindSafe(|| {
+        cal_merge_regions_inner(&path, &sheet)
+    })))
+}
+
+fn cal_merge_regions_inner(path: &str, sheet: &Robj) -> Result<List> {
     validate_path(path).map_err(|e| Error::Other(e))?;
-    validate_sheet_arg(&sheet).map_err(|e| Error::Other(e))?;
+    validate_sheet_arg(sheet).map_err(|e| Error::Other(e))?;
 
     let workbook = open_workbook_auto(path)
         .map_err(|e| Error::Other(format!("Failed to open workbook: {}", e)))?;
 
     let sheet_names = workbook.sheet_names().to_vec();
-    let sheet_name = get_sheet_name(&sheet, &sheet_names)
+    let sheet_name = get_sheet_name(sheet, &sheet_names)
         .map_err(|e| Error::Other(e))?;
 
     let sheet_idx = sheet_names.iter().position(|n| n == &sheet_name).unwrap_or(0);
