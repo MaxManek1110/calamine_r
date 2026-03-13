@@ -1,6 +1,6 @@
 LIBDIR = ./rust/target/release
 STATLIB = $(LIBDIR)/libcalamine_r.a
-PKG_LIBS = -L$(LIBDIR) -lcalamine_r
+PKG_LIBS = -L$(LIBDIR) -lcalamine_r -Wl,--wrap=abort
 
 all: C_clean
 

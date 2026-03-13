@@ -6,6 +6,12 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
+// Wrap abort() to prevent R termination - required for CRAN compliance
+// Linked via -Wl,--wrap=abort, all abort() calls redirect here
+void __wrap_abort(void) {
+    Rf_error("fatal error in Rust code");
+}
+
 // Rust functions
 SEXP wrap__cal_sheet_names(SEXP path);
 SEXP wrap__cal_read_sheet(SEXP path, SEXP sheet);

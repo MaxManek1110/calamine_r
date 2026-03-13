@@ -2,7 +2,7 @@ TARGET = $(subst 64,x86_64,$(subst 32,i686,$(WIN)))-pc-windows-gnu
 
 LIBDIR = ./rust/target/$(TARGET)/release
 STATLIB = $(LIBDIR)/libcalamine_r.a
-PKG_LIBS = -L$(LIBDIR) -lcalamine_r -lws2_32 -ladvapi32 -luserenv -lbcrypt -lntdll
+PKG_LIBS = -L$(LIBDIR) -lcalamine_r -lws2_32 -ladvapi32 -luserenv -lbcrypt -lntdll -Wl,--wrap=abort
 
 all: C_clean
 
