@@ -27,6 +27,9 @@ You can install the development version of calamineR from
 ``` r
 # install.packages("devtools")
 devtools::install_github("MaxManek1110/calamineR")
+
+# from CRAN (if available)
+install.packages("calamineR")
 ```
 
 ## Usage
@@ -90,12 +93,13 @@ unlink(demo_file)
 
 ## Functions
 
-| Function           | Description                       |
-|--------------------|-----------------------------------|
-| `read_excel()`     | Read sheet as data.frame          |
-| `excel_sheets()`   | Get sheet names                   |
-| `sheet_dims()`     | Get sheet dimensions (rows, cols) |
-| `read_sheet_raw()` | Read as list of character vectors |
+| Function           | Description                                          |
+|--------------------|------------------------------------------------------|
+| `read_excel()`     | Read sheet as data.frame                             |
+| `excel_sheets()`   | Get sheet names                                      |
+| `sheet_dims()`     | Get sheet dimensions (rows, cols)                    |
+| `read_sheet_raw()` | Read as list of character vectors                    |
+| `merge_regions()`  | Get information about merged cell regions in a sheet |
 
 ## Parameters for `read_excel()`
 
@@ -120,11 +124,10 @@ merged cells).
 ## Performance
 
 Calamine is written in pure Rust and is significantly faster than many
-alternatives:
-
-- 1.75x faster than excelize (Go)
-- 7x faster than ClosedXML (C#)
-- 9x faster than openpyxl (Python)
+alternatives especially for binary files. However as there is no package
+to write xlsb files in R, the benchmark only includes xlsx format where
+the difference is not that significant. Performance may vary based on
+file size, format, and system resources.
 
 ## Benchmark
 
@@ -167,7 +170,7 @@ time_calamineR <- system.time({
   df_calamineR <- calamineR::read_excel(temp_file)
 })
 cat("  Time:", round(time_calamineR["elapsed"], 3), "seconds\n")
-#>   Time: 7.074 seconds
+#>   Time: 7.069 seconds
 cat("  Rows:", nrow(df_calamineR), " Cols:", ncol(df_calamineR), "\n\n")
 #>   Rows: 500000  Cols: 10
 
@@ -178,7 +181,7 @@ time_readxl <- system.time({
   df_readxl <- readxl::read_xlsx(temp_file)
 })
 cat("  Time:", round(time_readxl["elapsed"], 3), "seconds\n")
-#>   Time: 7.726 seconds
+#>   Time: 7.814 seconds
 cat("  Rows:", nrow(df_readxl), " Cols:", ncol(df_readxl), "\n\n")
 #>   Rows: 500000  Cols: 10
 
@@ -186,9 +189,9 @@ cat("  Rows:", nrow(df_readxl), " Cols:", ncol(df_readxl), "\n\n")
 cat("--- Summary ---\n")
 #> --- Summary ---
 cat("calamineR:", round(time_calamineR["elapsed"], 3), "s\n")
-#> calamineR: 7.074 s
+#> calamineR: 7.069 s
 cat("readxl:   ", round(time_readxl["elapsed"], 3), "s\n")
-#> readxl:    7.726 s
+#> readxl:    7.814 s
 cat("Speedup:  ", round(time_readxl["elapsed"] / time_calamineR["elapsed"], 1), "x faster\n")
 #> Speedup:   1.1 x faster
 
