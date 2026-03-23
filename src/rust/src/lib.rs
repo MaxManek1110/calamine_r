@@ -1,5 +1,5 @@
 use extendr_api::prelude::*;
-use calamine::{open_workbook_auto, Reader, Data};
+use calamine::{open_workbook_auto, Reader, Data, SheetType};
 use std::io::{Read as IoRead, BufReader, Cursor};
 use std::fs::File;
 use std::path::Path;
@@ -811,6 +811,80 @@ fn cal_sheet_names_inner(path: &str) -> Result<Vec<String>> {
     Ok(workbook.sheet_names().to_vec())
 }
 
+/// Get sheet metadata (name, type, visibility) from an Excel file
+/// @param path Path to the Excel file
+/// @return A data.frame with columns: name, type, visible
+/// @export
+#[extendr]
+fn cal_sheets_metadata(path: &str) -> Result<List> {
+    cal_sheets_metadata_inner(path)
+}
+
+fn cal_sheets_metadata_inner(path: &str) -> Result<List> {
+    validate_path(path).map_err(|e| Error::Other(e))?;
+
+    let workbook = open_workbook_auto(path)
+        .map_err(|e| Error::Other(format!("Failed to open workbook: {}", e)))?;
+
+    let sheets = workbook.sheets_metadata();
+    let nrows = sheets.len();
+
+    let names: Vec<String> = sheets.iter().map(|s| s.name.clone()).collect();
+    let types: Vec<String> = sheets.iter().map(|s| {
+        match s.typ {
+            SheetType::WorkSheet => "worksheet".to_string(),
+            SheetType::ChartSheet => "chartsheet".to_string(),
+            SheetType::DialogSheet => "dialogsheet".to_string(),
+            SheetType::MacroSheet => "macrosheet".to_string(),
+            SheetType::Vba => "vba".to_string(),
+        }
+    }).collect();
+    let visible: Vec<bool> = sheets.iter().map(|s| {
+        matches!(s.visible, calamine::SheetVisible::Visible)
+    }).collect();
+
+    let mut df = List::new(3);
+    df.set_elt(0, names.into_robj())?;
+    df.set_elt(1, types.into_robj())?;
+    df.set_elt(2, visible.into_robj())?;
+
+    df.set_names(["name", "type", "visible"])?;
+    df.set_class(&["data.frame"])?;
+    df.set_attrib("row.names", (1..=nrows as i32).collect::<Vec<i32>>())?;
+
+    Ok(df)
+}
+
+/// Check if a sheet is a worksheet (not a chart/dialog/macro sheet)
+/// @param path Path to the Excel file
+/// @param sheet Sheet name or index (1-based)
+/// @return Logical: TRUE if worksheet, FALSE otherwise
+/// @export
+#[extendr]
+fn cal_is_worksheet(path: &str, sheet: Robj) -> Result<bool> {
+    cal_is_worksheet_inner(path, &sheet)
+}
+
+fn cal_is_worksheet_inner(path: &str, sheet: &Robj) -> Result<bool> {
+    validate_path(path).map_err(|e| Error::Other(e))?;
+    validate_sheet_arg(sheet).map_err(|e| Error::Other(e))?;
+
+    let workbook = open_workbook_auto(path)
+        .map_err(|e| Error::Other(format!("Failed to open workbook: {}", e)))?;
+
+    let sheet_names: Vec<String> = workbook.sheet_names().to_vec();
+    let sheet_name = get_sheet_name(sheet, &sheet_names)
+        .map_err(|e| Error::Other(e))?;
+
+    let sheets = workbook.sheets_metadata();
+    let sheet_meta = sheets.iter().find(|s| s.name == sheet_name);
+
+    match sheet_meta {
+        Some(s) => Ok(matches!(s.typ, SheetType::WorkSheet)),
+        None => Ok(false),
+    }
+}
+
 /// Read a sheet from an Excel file as a list of rows
 /// @param path Path to the Excel file
 /// @param sheet Sheet name or index (1-based)
@@ -1274,6 +1348,8 @@ fn cal_merge_regions_inner(path: &str, sheet: &Robj) -> Result<List> {
 extendr_module! {
     mod calamine_r;
     fn cal_sheet_names;
+    fn cal_sheets_metadata;
+    fn cal_is_worksheet;
     fn cal_read_sheet;
     fn cal_read_sheet_df;
     fn cal_sheet_dims;

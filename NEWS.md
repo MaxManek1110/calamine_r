@@ -1,3 +1,10 @@
+# calamineR 0.1.2
+
+* Fixed panic when reading Excel files containing chart sheets (xlsb, xlsx, xlsm, xls)
+* Added `sheets_metadata()` to inspect sheet names, types, and visibility
+* Added `include_charts` parameter to `excel_sheets()` - defaults to FALSE, returning only readable worksheets
+* `read_excel()` now gives a clear error message when attempting to read chart/dialog sheets instead of crashing
+
 # calamineR 0.1.1
 
 * Added `fill_merged_cells` parameter to `read_excel()` - when TRUE, fills merged cells with the value from the top-left cell of the merged region

@@ -52,4 +52,21 @@ cal_merge_regions <- function(path, sheet) {
   .Call(wrap__cal_merge_regions, path, sheet)
 }
 
+#' Get sheet metadata (name, type, visibility) from an Excel file
+#' @param path Path to the Excel file
+#' @return A data.frame with columns: name, type, visible
+#' @export
+cal_sheets_metadata <- function(path) {
+  .Call(wrap__cal_sheets_metadata, path)
+}
+
+#' Check if a sheet is a worksheet (not a chart/dialog/macro sheet)
+#' @param path Path to the Excel file
+#' @param sheet Sheet name or index (1-based)
+#' @return Logical: TRUE if worksheet, FALSE otherwise
+#' @export
+cal_is_worksheet <- function(path, sheet) {
+  .Call(wrap__cal_is_worksheet, path, sheet)
+}
+
 # nolint end

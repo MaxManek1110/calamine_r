@@ -1,5 +1,5 @@
 # Helper function to validate sheet parameter against available sheets
-validate_sheet <- function(path, sheet) {
+validate_sheet <- function(path, sheet, require_worksheet = TRUE) {
   sheets <- cal_sheet_names(path)
   if (is.numeric(sheet)) {
     if (sheet > length(sheets)) {
@@ -15,6 +15,18 @@ validate_sheet <- function(path, sheet) {
         sheet, paste(shQuote(sheets), collapse = ", ")
       ), call. = FALSE)
     }
+  }
+  # Check if sheet is a worksheet (not a chart/dialog sheet)
+  if (require_worksheet && !cal_is_worksheet(path, sheet)) {
+    meta <- cal_sheets_metadata(path)
+    sheet_name <- if (is.numeric(sheet)) sheets[sheet] else sheet
+    sheet_type <- meta$type[meta$name == sheet_name]
+    worksheets <- meta$name[meta$type == "worksheet"]
+    stop(sprintf(
+      "Sheet '%s' is a %s, not a worksheet. Cannot read data from chart/dialog sheets. Available worksheets: %s",
+      sheet_name, sheet_type,
+      if (length(worksheets) > 0) paste(shQuote(worksheets), collapse = ", ") else "(none)"
+    ), call. = FALSE)
   }
   invisible(TRUE)
 }
@@ -72,6 +84,8 @@ read_excel <- function(path, sheet = 1L, col_names = TRUE, skip = 0L,
 #' Get Sheet Names from Excel File
 #'
 #' @param path Path to the Excel file
+#' @param include_charts If FALSE (default), only return worksheet names.
+#'   If TRUE, return all sheet names including chart sheets.
 #' @return Character vector of sheet names
 #' @export
 #'
@@ -81,7 +95,42 @@ read_excel <- function(path, sheet = 1L, col_names = TRUE, skip = 0L,
 #'   sheets <- excel_sheets(test_file)
 #'   print(sheets)
 #' }
-excel_sheets <- function(path) {
+excel_sheets <- function(path, include_charts = FALSE) {
+  stopifnot(
+    "`path` must be a single character string" = is.character(path) && length(path) == 1,
+    "File does not exist" = file.exists(path),
+    "`include_charts` must be TRUE or FALSE" = is.logical(include_charts) && length(include_charts) == 1
+  )
+  path <- normalizePath(path)
+  ext <- tolower(tools::file_ext(path))
+  stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
+  if (include_charts) {
+    cal_sheet_names(path)
+  } else {
+    meta <- cal_sheets_metadata(path)
+    meta$name[meta$type == "worksheet"]
+  }
+}
+
+#' Get Sheet Metadata from Excel File
+#'
+#' Returns detailed information about all sheets including their type
+#' (worksheet, chartsheet, etc.) and visibility.
+#'
+#' @param path Path to the Excel file
+#' @return A data.frame with columns:
+#'   \item{name}{Sheet name}
+#'   \item{type}{Sheet type: "worksheet", "chartsheet", "dialogsheet", "macrosheet", or "vba"}
+#'   \item{visible}{Logical indicating if the sheet is visible}
+#' @export
+#'
+#' @examples
+#' test_file <- system.file("extdata", "test.xlsx", package = "calamineR")
+#' if (nzchar(test_file)) {
+#'   meta <- sheets_metadata(test_file)
+#'   print(meta)
+#' }
+sheets_metadata <- function(path) {
   stopifnot(
     "`path` must be a single character string" = is.character(path) && length(path) == 1,
     "File does not exist" = file.exists(path)
@@ -89,7 +138,7 @@ excel_sheets <- function(path) {
   path <- normalizePath(path)
   ext <- tolower(tools::file_ext(path))
   stopifnot("Unsupported file format. Use: xlsx, xlsm, xlsb, xls, ods" = ext %in% c("xlsx", "xlsm", "xlsb", "xls", "ods"))
-  cal_sheet_names(path)
+  cal_sheets_metadata(path)
 }
 
 #' Get Sheet Dimensions
